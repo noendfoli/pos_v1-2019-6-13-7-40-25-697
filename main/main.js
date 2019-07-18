@@ -2,7 +2,7 @@
 
 function printReceipt(inputs) {
     const allItem = loadAllItems();
-    const promotes = loadPromotions();
+    const promotes = loadPromotions()[0].barcodes;
     const itemSameCount = getCountOfBarcodes(inputs)
     const costItem = getCostItem(itemSameCount,promotes,allItem);
     const receipt = createReceipt(costItem);
@@ -10,64 +10,42 @@ function printReceipt(inputs) {
   }
   
   function getCountOfBarcodes(inputs){
-    var countInput = [];
-       inputs.forEach(value =>{
-          if(value.split("-").length == 1){
-            countInput.push({
-                barcode:value.split("-")[0],
-                count: 1
-            })
-          }else{
-            countInput.push({
-            barcode:value.split("-")[0],
-            count: value.split("-")[1]
-            })
-           }
-       })
-       var same =[];
-       for (var i = 0; i < countInput.length;) {
-          var count = 0;
-          var number = 0;
-           for (var j = i; j < countInput.length; j++) {
-              if(countInput[i].barcode == countInput[j].barcode){
-                    count += Number(countInput[j].count);
-                    number ++ ;
-              }
-           }
-          same.push({
-              item: countInput[i].barcode,
-              count: count
-           })
-          i = i + number;
-       }
-       return same;
+    return Object.entries(inputs.reduce((m, item) => {
+         let barcode = item, count = 1
+         if (item.includes('-')) {
+         [barcode, count] = item.split('-')
+         count = Number(count)
+         }
+         m[barcode] ? m[barcode].count += count : m[barcode] = {barcode, count}
+         return m
+      }, {})).map(item => item[1])
  }
 
   function getCostItem(same,promotion,allItems){
-    var costItem = [];
-        var item = {};
+     var costItem = [];
+        var row = {};
         costItem =  same.map((vaule) =>{
-            item = {
+         row = {
               name:allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+                 return item.barcode == vaule.barcode;
               }).name,
               price:allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+                 return item.barcode == vaule.barcode;
               }).price,
               count:vaule.count,
               unit:allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+                 return item.barcode == vaule.barcode;
               }).unit,
-              discouTotal:promotion[0].barcodes.includes(vaule.item)?(Number(vaule.count)-Math.floor(Number(vaule.count/3)))*allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+              discouTotal:promotion.includes(vaule.barcode)?(Number(vaule.count)-Math.floor(Number(vaule.count/3)))*allItems.find((item) =>{
+                 return item.barcode == vaule.barcode;
               }).price:Number(vaule.count)*allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+                 return item.barcode == vaule.barcode;
               }).price,
               subTotal:Number(vaule.count)*allItems.find((item) =>{
-                 return item.barcode == vaule.item;
+                 return item.barcode == vaule.barcode;
               }).price
            };
-           return item
+           return row
         });
         return costItem;
  }
